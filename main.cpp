@@ -13,6 +13,8 @@ bool *exists = new bool;
 string *salt = new string;
 string *passwordHash = new string;
 
+string encryptMessage(string message, string nonce, string password);
+
 static int callback2(void *NotUsed, int argc, char **argv, char **azColName){
     int i;
     //cout<< *exists << endl;
@@ -66,6 +68,56 @@ static int callback(void *NotUsed, int argc, char **argv, char **azColName){
         printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
         //cout<< argv[i] ? argv[i] : "NULL" << endl;
         //NotUsed = argv[i] ? argv[i] : "NULL";
+        
+    }
+    cout<< endl;
+    return 0;
+}
+
+static int createUserTable(void *NotUsed, int argc, char **argv, char **azColName){
+    int i;
+    for(i =0; i<argc; i++){
+        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
+    cout<< endl;
+    return 0;
+}
+
+static int selectMessage(void *NotUsed, int argc, char **argv, char **azColName){
+    int i;
+    string nonce = argv[1];
+    string message = argv[0];
+    string sender = argv[2];
+    cout<< "Enter password to decrypt message from "<< sender << endl;
+    string password;
+    cin >> password;
+    /*for(i=0; i<argc; i++){
+        printf("%s %d = %s\n", azColName[i], i+1, argv[i] ? argv[i] : "NULL");
+        
+        cout<< "argv:"<< argv[i]<< endl;
+        cout<< "argv2:" << argv[i+1] << endl;
+        //string decryptedMessage = encryptMessage(argv[i]);
+        //cout<< decryptedMessage << endl;
+    }*/
+    cout<< endl;
+    string decryptedMessage = encryptMessage(message,nonce,password);
+    cout<< decryptedMessage << endl;
+    return 0;
+}
+
+static int getUsersSQL(void *NotUsed, int argc, char **argv, char **azColName){
+    int i;
+    for(i=0; i<argc; i++){
+        printf("%s %d = %s\n", azColName[i], i+1, argv[i] ? argv[i] : "NULL");
+    }
+    cout<< endl;
+    return 0;
+}
+
+static int storeEncrypted(void *NotUsed, int argc, char **argv, char **azColName){
+    int i;
+    for(i=0; i<argc; i++){
+        printf("%s %d = %s\n", azColName[i], i+1, argv[i] ? argv[i] : "NULL");
     }
     cout<< endl;
     return 0;
@@ -102,6 +154,30 @@ string createHash(string name, string password){
     //printf("\n");
     cout<< "hash2:" << HB3 << endl;
     return HB3;
+}
+
+void createTable(string username){
+    sqlite3* db;
+    char *zErrMsg = 0;
+    int rc;
+    
+    rc = sqlite3_open("mail.db", &db);
+    if( rc ){
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+    } else{
+
+    string sql_s = "CREATE TABLE "+username+"(ID integer primary key autoincrement, MESSAGE text, NONCE text, SENDER text)";
+    const char *sql = sql_s.c_str();
+    rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+    if( rc != SQLITE_OK ){
+      fprintf(stderr, "SQL error: %s\n", zErrMsg);
+      sqlite3_free(zErrMsg);
+    }else{
+      fprintf(stdout, "Message table successfully created\n");
+    }    
+    sqlite3_close(db);
+    }
 }
 
 void storeInfo(string name, string password){
@@ -142,7 +218,7 @@ void storeInfo(string name, string password){
 
     string sql_s = "INSERT INTO users (NAME, HASH, SALT) VALUES('"+name+"', '"+hashBuff+"', '"+*salt+"');";
     const char *sql = sql_s.c_str();
-    rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, sql, createUserTable, 0, &zErrMsg);
     if( rc != SQLITE_OK ){
     fprintf(stderr, "SQL error: %s\n", zErrMsg);
       sqlite3_free(zErrMsg);
@@ -151,7 +227,7 @@ void storeInfo(string name, string password){
     }    
     sqlite3_close(db);
     }
-     
+    createTable(name);
 }
 
 bool checkUsernameExists(string username){
@@ -277,20 +353,254 @@ string getRandom(){
     return randval;
 }
 
+int readMessages(string username){
+    sqlite3* db;
+    char *zErrMsg = 0;
+    //bool rc;
+    //bool exists;
+    int rc;
+    rc = sqlite3_open("mail.db", &db);
+    if( rc ){
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+    } else{
+    string sql_s = "SELECT MESSAGE, NONCE, SENDER FROM "+username+";";
+    const char *sql = sql_s.c_str();
+    cout<< "h2"<< endl;
+    //string temp;
+    //bool *exists = new bool;
+    rc = sqlite3_exec(db, sql, selectMessage, 0, &zErrMsg);
+    cout<< "h3" << endl;
+    if( rc != SQLITE_OK ){
+    fprintf(stderr, "SQL error: %s\n", zErrMsg);
+      sqlite3_free(zErrMsg);
+      //exists = false;
+    }/*else{
+      //fprintf(stdout, "Username exists\n");
+      //exists = true;
+    }*/
+    sqlite3_close(db);
+    }
+    return 0;
+}
 
+char *xorMessage(char *encBuffer, char * message, int length){
+    size_t index;
+    size_t txtLength = length;
+    string RandChars = "";
+    //cout<< encBuffer << endl;
+    char *encryptedMess = new char;
+    for (index = 0; index<txtLength; index++){
+        //char * temp = new char;
+        //cout<< (unsigned char)encBuffer[index] << endl;
+        //cout<< message[index] << endl;
+        encryptedMess[index] = (unsigned char)encBuffer[index] ^ (unsigned char)message[index];
+        //sprintf(temp,"%02X",(unsigned char)encBuffer[index]);
+        //RandChars = RandChars+ temp;
+    }
+    //cout << encryptedMess << endl;
+    //cout<< "encBuffer2 = " << RandChars << endl;
+    //string RandChars = "";
+    for (index = 0; index<txtLength; index++){
+        char * temp = new char;
+        sprintf(temp,"%02X",(unsigned char)encryptedMess[index]);
+        RandChars = RandChars+ temp;
+    }
+    //printf("\n");
+    //cout<< "encMessage = " << RandChars << endl;
+    //char *encryptedMess = cMessage ^ encBuffer;
+    //cout<< "encrypted Message: " << encryptedMess << endl;
+    //return encryptedMess;
+    return encryptedMess;
+}
 
-/*int loginMenu(){
+string encryptMessage(string message, string nonce, string password) {
+    gcry_error_t     gcryError;
+    gcry_cipher_hd_t gcryCipherHd;
+    size_t           index;
+    //string message = "To bob:\nHello Poop Head\nFrom: Steven";
+    //cin >> message;
+    int textSize = message.length();
+    //cout << textSize << endl;
+    //int textSize;
+    //cin >> textSize;
+    //cout<< textSize << endl;
+    string randvalue = nonce;
+    char salsaKey[password.length()];// = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // 32 bytes
+    char iniVector[9]; // 8 bytes
+    strncpy(iniVector,randvalue.c_str(),9);
+    strncpy(salsaKey,password.c_str(),password.length());
+    //cout<< iniVector<< endl;
+
+    gcryError = gcry_cipher_open(
+        &gcryCipherHd, // gcry_cipher_hd_t *
+        GCRY_CIPHER_SALSA20,   // int
+        GCRY_CIPHER_MODE_STREAM,   // int
+        0);            // unsigned int
+    if (gcryError)
+    {
+        /*printf("gcry_cipher_open failed:  %s/%s\n",
+               gcry_strsource(gcryError),
+               gcry_strerror(gcryError));
+        */return 0;
+    }
+    //printf("gcry_cipher_open worked\n");
+    
+    gcryError = gcry_cipher_setkey(gcryCipherHd, salsaKey, 32);
+    if (gcryError)
+    {
+        /*printf("gcry_cipher_setkey failed:  %s/%s\n",
+               gcry_strsource(gcryError),
+               gcry_strerror(gcryError));
+        */return 0;
+    }
+    //printf("gcry_cipher_setkey worked\n");
+    
+    gcryError = gcry_cipher_setiv(gcryCipherHd, iniVector, 8);
+    if (gcryError)
+    {
+        /*printf("gcry_cipher_setiv failed:  %s/%s\n",
+               gcry_strsource(gcryError),
+               gcry_strerror(gcryError));
+        */return 0;
+    }
+    //printf("gcry_cipher_setiv worked\n");
+    
+    size_t txtLength = textSize;
+    char * encBuffer = new char[txtLength];
+    char * textBuffer = new char[txtLength];
+    memset(textBuffer, 0, txtLength);
+
+    gcryError = gcry_cipher_encrypt(
+        gcryCipherHd, // gcry_cipher_hd_t
+        encBuffer,    // void *
+        txtLength,    // size_t
+        textBuffer,    // const void *
+        txtLength);   // size_t
+    if (gcryError)
+    {
+        /*printf("gcry_cipher_decrypt failed:  %s/%s\n",
+               gcry_strsource(gcryError),
+               gcry_strerror(gcryError));
+        */return 0;
+    }
+    //printf("gcry_cipher_decrypt worked\n");
+    
+    
+    string RandChars = "";
+    for (index = 0; index<txtLength; index++){
+        char * temp = new char;
+        sprintf(temp,"%02X",(unsigned char)encBuffer[index]);
+        RandChars = RandChars+ temp;
+    }
+    //printf("\n");
+    cout<< "encBuffer = " << RandChars << endl;
+    cout<< message.length() << endl;
+    char cMessage[message.length()];
+    strncpy(cMessage,message.c_str(),message.length());
+    cout<< cMessage << endl;
+    
+    char *encrypted = xorMessage(encBuffer,cMessage,message.length());
+    cout<<"encrypted:" <<hex << encrypted << endl;
+    
+    // To decrypt:
+    /*char *decrypted = xorMessage(encBuffer,encrypted,message.length());
+    //cout<< hex << decrypted << endl;
+    cout<<"decrypted:" <<decrypted << endl;
+    */
+    
+    return encrypted;
+}
+
+void printUsers(){
+    sqlite3* db;
+    char *zErrMsg = 0;
+    //bool rc;
+    //bool exists;
+    int rc;
+    rc = sqlite3_open("mail.db", &db);
+    if( rc ){
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+    } else{
+
+    string sql_s = "SELECT name FROM users";
+    const char *sql = sql_s.c_str();
+    //string temp;
+    //bool *exists = new bool;
+    rc = sqlite3_exec(db, sql, getUsersSQL, 0, &zErrMsg);
+    //cout<< "rc:" <<rc << endl;
+    if( rc != SQLITE_OK ){
+    fprintf(stderr, "SQL error: %s\n", zErrMsg);
+      sqlite3_free(zErrMsg);
+      //exists = false;
+    }/*else{
+      //fprintf(stdout, "Username exists\n");
+      //exists = true;
+    }*/
+    sqlite3_close(db);
+    }
+}
+
+void storeMessageInDB(string message, string receiver, string nonce, string sender){
+    sqlite3* db;
+    char *zErrMsg = 0;
+    //bool rc;
+    //bool exists;
+    int rc;
+    rc = sqlite3_open("mail.db", &db);
+    if( rc ){
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+    } else{
+
+    string sql_s = "INSERT INTO "+receiver+" (MESSAGE, NONCE, SENDER) VALUES('"+message+"', '"+nonce+"', '"+sender+"');";
+    const char *sql = sql_s.c_str();
+    //string temp;
+    //bool *exists = new bool;
+    rc = sqlite3_exec(db, sql, storeEncrypted, 0, &zErrMsg);
+    //cout<< "rc:" <<rc << endl;
+    if( rc != SQLITE_OK ){
+    fprintf(stderr, "SQL error: %s\n", zErrMsg);
+      sqlite3_free(zErrMsg);
+      //exists = false;
+    }/*else{
+      //fprintf(stdout, "Username exists\n");
+      //exists = true;
+    }*/
+    sqlite3_close(db);
+    }
+}
+
+int writeMessage(string username){
+    printUsers();
+    cout<< "Enter name of user to send message to." << endl;
+    string receiver;
+    cin >> receiver;
+    cout<< "Enter Message with no new line characters:" << endl;
+    string message;
+    cin >> message;
+    string password;
+    cout<< "Enter password to encrypt message" << endl;
+    cin >> password;
+    string nonce = getRandom();
+    string encrypted= encryptMessage(message, nonce,password);
+    storeMessageInDB(encrypted,receiver,nonce,username);
+    
+}
+
+int loginMenu(string username){
     cout<< "Enter 1 to write message 2 to view message and 3 to go back" << endl;
     int rwb = 0;
     cin >> rwb;
     if(rwb == 1){
-        writeMessage();
+        writeMessage(username);
     } else if(rwb == 2){
-        readMessages();
+        readMessages(username);
     } else{
         return 1;
     }
-}*/
+}
 
 
 int main(){
@@ -342,7 +652,7 @@ int main(){
        if(usernameExist){
            bool passwordCorrect = checkPassword(username,password);
            if(passwordCorrect){
-               //loginMenu();
+               loginMenu(username);
                cout<< "Logged In!!" << endl;
            } else{
                cout<< "Incorrect Username or password" << endl;

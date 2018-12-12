@@ -487,36 +487,6 @@ void storeMessageInDB(string message, string receiver, string nonce, string send
     }
 }
 
-/*int writeMessage(string username){
-    printUsers();
-    cout<< "Enter name of user to send message to." << endl;
-    string receiver;
-    cin >> receiver;
-    cout<< "Enter Message with no new line characters:" << endl;
-    string message;
-    cin >> message;
-    string password;
-    cout<< "Enter password to encrypt message" << endl;
-    cin >> password;
-    string nonce = getRandom();
-    string encrypted= encryptMessage(message, nonce,password);
-    storeMessageInDB(encrypted,receiver,nonce,username);
-    
-}
-
-int loginMenu(string username){
-    cout<< "Enter 1 to write message 2 to view message and 3 to go back" << endl;
-    int rwb = 0;
-    cin >> rwb;
-    if(rwb == 1){
-        writeMessage(username);
-    } else if(rwb == 2){
-        readMessages(username);
-    } else{
-        return 1;
-    }
-}*/
-
 const char HEX2DEC[256] = 
 {
     /*       0  1  2  3   4  5  6  7   8  9  A  B   C  D  E  F */

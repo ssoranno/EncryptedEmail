@@ -33,28 +33,13 @@ static int selectMessage(void *NotUsed, int argc, char **argv, char **azColName)
     cout<< "<input type=\"hidden\" name=\"nonce\" id=\"nonce\" value="+nonce+">\n";
     cout<< "<input type=\"hidden\" name=\"messNum\" id=\"messNum\" value="+messNum_s+"/0"+" />\n";
     cout << "</form>\n";
-    //cout<< "Enter password to decrypt message from "<< sender << endl;
-    //string password;
-    //cin >> password;
-    /*for(i=0; i<argc; i++){
-        printf("%s %d = %s\n", azColName[i], i+1, argv[i] ? argv[i] : "NULL");
-        
-        cout<< "argv:"<< argv[i]<< endl;
-        cout<< "argv2:" << argv[i+1] << endl;
-        //string decryptedMessage = encryptMessage(argv[i]);
-        //cout<< decryptedMessage << endl;
-    }*/
-    //cout<< endl;
-    //string decryptedMessage = encryptMessage(message,nonce,password);
-    //cout<< decryptedMessage << endl;
     return 0;
 }
 
 int readMessages(string username){
     sqlite3* db;
     char *zErrMsg = 0;
-    //bool rc;
-    //bool exists;
+    
     int rc;
     rc = sqlite3_open("mail.db", &db);
     if( rc ){
@@ -63,11 +48,9 @@ int readMessages(string username){
     } else{
     string sql_s = "SELECT MESSAGE, NONCE, SENDER FROM "+username+";";
     const char *sql = sql_s.c_str();
-    //cout<< "h2"<< endl;
-    //string temp;
-    //bool *exists = new bool;
+    
     rc = sqlite3_exec(db, sql, selectMessage, 0, &zErrMsg);
-    //cout<< "h3" << endl;
+    
     if( rc != SQLITE_OK ){
     fprintf(stderr, "SQL error: %s\n", zErrMsg);
       sqlite3_free(zErrMsg);

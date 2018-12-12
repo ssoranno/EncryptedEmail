@@ -8,7 +8,6 @@
 #include <gcrypt.h>
 #include <fstream>
 #include <bits/stdc++.h>
-//#include "SF.hpp"
 
 using namespace std;
 
@@ -19,13 +18,10 @@ string encryptMessage(string message, string nonce, string password);
 static int callback3(void *NotUsed, int argc, char **argv, char **azColName){
     int i;
     for(i=0; i<argc; i++){
-        //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-        //cout<< argv[i] ? argv[i] : "NULL" << endl;
-        //NotUsed = argv[i] ? argv[i] : "NULL";
         
         *salt = argv[i];
     }
-    //cout << "salt:"<< salt<< endl;
+    
     cout<< endl;
     return 0;
 }
@@ -38,14 +34,6 @@ static int selectMessage(void *NotUsed, int argc, char **argv, char **azColName)
     cout<< "Enter password to decrypt message from "<< sender << endl;
     string password;
     cin >> password;
-    /*for(i=0; i<argc; i++){
-        printf("%s %d = %s\n", azColName[i], i+1, argv[i] ? argv[i] : "NULL");
-        
-        cout<< "argv:"<< argv[i]<< endl;
-        cout<< "argv2:" << argv[i+1] << endl;
-        //string decryptedMessage = encryptMessage(argv[i]);
-        //cout<< decryptedMessage << endl;
-    }*/
     cout<< endl;
     string decryptedMessage = encryptMessage(message,nonce,password);
     cout<< decryptedMessage << endl;
@@ -64,8 +52,7 @@ static int storeEncrypted(void *NotUsed, int argc, char **argv, char **azColName
 string getSalt(string username){
     sqlite3* db;
     char *zErrMsg = 0;
-    //bool rc;
-    //bool exists;
+    
     int rc;
     rc = sqlite3_open("mail.db", &db);
     if( rc ){
@@ -87,33 +74,14 @@ string getSalt(string username){
 char *xorMessage(char *encBuffer, char * message, int length){
     size_t index;
     size_t txtLength = length;
-    //string RandChars = "";
-    /*cout<<encBuffer << endl;
-    cout<<"\n";
-    cout<<message;
-    cout<< "\n";*/
+    
     char *encryptedMess = new char;
     for (index = 0; index<txtLength; index++){
-        //char * temp = new char;
-        //cout<< (unsigned char)encBuffer[index] << endl;
-        //cout<< message[index] << endl;
+        
         encryptedMess[index] = (unsigned char)encBuffer[index] ^ (unsigned char)message[index];
-        //sprintf(temp,"%02X",(unsigned char)encBuffer[index]);
-        //RandChars = RandChars+ temp;
+        
     }
-    //cout << "<p>Got Here</p>\n";
-    //cout<< "encBuffer2 = " << RandChars << endl;
-    //string RandChars = "";
-    /*for (index = 0; index<txtLength; index++){
-        char * temp = new char;
-        sprintf(temp,"%02X",(unsigned char)encryptedMess[index]);
-        RandChars = RandChars+ temp;
-    }*/
-    //printf("\n");
-    //cout<< "encMessage = " << RandChars << endl;
-    //char *encryptedMess = cMessage ^ encBuffer;
-    //cout<< "encrypted Message: " << encryptedMess << endl;
-    //return encryptedMess;
+    
     return encryptedMess;
 }
 
@@ -205,9 +173,6 @@ string encryptMessage(string message, string nonce, string password) {
     //cout<< "cMessage:" <<cMessage << endl;
     
     char *encrypted = xorMessage(encBuffer,cMessage,message.length());
-    //char newEncrypt = *encrypted;
-    //string str(encrypted);
-    //cout<<"<p>encryptedInfunction:" << encrypted << "</p>\n";
     
     // To decrypt:
     /*char *decrypted = xorMessage(encBuffer,encrypted,message.length());
@@ -223,8 +188,7 @@ string encryptMessage(string message, string nonce, string password) {
 void storeMessageInDB(string message, string receiver, string nonce, string sender){
     sqlite3* db;
     char *zErrMsg = 0;
-    //bool rc;
-    //bool exists;
+    
     int rc;
     rc = sqlite3_open("mail.db", &db);
     if( rc ){
@@ -232,25 +196,24 @@ void storeMessageInDB(string message, string receiver, string nonce, string send
         sqlite3_close(db);
     } else{
 
-    string sql_s = "INSERT INTO "+receiver+" (MESSAGE, NONCE, SENDER) VALUES('"+message+"', '"+nonce+"', '"+sender+"');";
-    //cout<<"<p>sql:"+sql_s+"</p>\n";
-    const char *sql = sql_s.c_str();
-    //string temp;
-    //bool *exists = new bool;
-    rc = sqlite3_exec(db, sql, storeEncrypted, 0, &zErrMsg);
-    //cout<< "rc:" <<rc << endl;
-    if( rc != SQLITE_OK ){
-    fprintf(stderr, "SQL error: %s\n", zErrMsg);
-      sqlite3_free(zErrMsg);
-      cout<< "<p>Error:";
-      cout<< zErrMsg;
-      cout<< "</p>\n";
-      //exists = false;
-    }else{
-        //cout<< "<p>Did it!</p>\n";
-      //fprintf(stdout, "Username exists\n");
-      //exists = true;
-    }
+        string sql_s = "INSERT INTO "+receiver+" (MESSAGE, NONCE, SENDER) VALUES('"+message+"', '"+nonce+"', '"+sender+"');";
+        
+        const char *sql = sql_s.c_str();
+        
+        rc = sqlite3_exec(db, sql, storeEncrypted, 0, &zErrMsg);
+        
+        if( rc != SQLITE_OK ){
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+          sqlite3_free(zErrMsg);
+          cout<< "<p>Error:";
+          cout<< zErrMsg;
+          cout<< "</p>\n";
+          //exists = false;
+        }else{
+            //cout<< "<p>Did it!</p>\n";
+          //fprintf(stdout, "Username exists\n");
+          //exists = true;
+        }
     sqlite3_close(db);
     }
 }
@@ -285,33 +248,6 @@ string getRandom(){
     return randval;
 }
 
-//string messPass= "";
-
-/*static int selectMessage(void *NotUsed, int argc, char **argv, char **azColName){
-    int i;
-    cout<<"<p>Gothere222</p>"<< endl;
-    string nonce = argv[1];
-    string message = argv[0];
-    cout<< "<p>"+nonce+"</p>\n";
-    cout<< "<p>Messgae:"+message+"</p\n>";
-    //string sender = argv[2];
-    
-    //cout<< "Enter password to decrypt message from "<< sender << endl;
-    //string password;
-    //cin >> password;
-    /*for(i=0; i<argc; i++){
-        printf("%s %d = %s\n", azColName[i], i+1, argv[i] ? argv[i] : "NULL");
-        
-        cout<< "argv:"<< argv[i]<< endl;
-        cout<< "argv2:" << argv[i+1] << endl;
-        //string decryptedMessage = encryptMessage(argv[i]);
-        //cout<< decryptedMessage << endl;
-    }
-    //cout<< endl;
-    string decryptedMessage = encryptMessage(message,nonce,messPass);
-    cout<<"<p>decryptMessage:"+ decryptedMessage+ "</p>"<< endl;
-    return 0;
-}*/
 
 int readMessages(string username, int messID){
     sqlite3* db;
@@ -324,28 +260,24 @@ int readMessages(string username, int messID){
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
     } else{
-        //int temp = stoi(messID);
-        //string str(temp);
-        //cout<<"<p>"+ temp+"</p>"<< endl;
+
         string id = to_string(messID);
-    string sql_s = "SELECT MESSAGE, NONCE FROM "+username+" where id="+id+";";
-    //cout<< "<p>"+sql_s+"</p>\n";
-    const char *sql = sql_s.c_str();
-    //cout<< "h2"<< endl;
-    //string temp;
-    //bool *exists = new bool;
-    rc = sqlite3_exec(db, sql, selectMessage, 0, &zErrMsg);
-    //cout<< "h3" << endl;
-    if( rc != SQLITE_OK ){
-    fprintf(stdout, "SQL error: %s\n", zErrMsg);
-        //printf()
-        //cout<<"<p>"+*zErrMsg+"</p>\n";
-      sqlite3_free(zErrMsg);
-      //exists = false;
-    }else{
-      //fprintf(stdout, "Username exists\n");
-      //exists = true;
-    }
+        string sql_s = "SELECT MESSAGE, NONCE FROM "+username+" where id="+id+";";
+    
+        const char *sql = sql_s.c_str();
+        
+        rc = sqlite3_exec(db, sql, selectMessage, 0, &zErrMsg);
+        
+        if( rc != SQLITE_OK ){
+        fprintf(stdout, "SQL error: %s\n", zErrMsg);
+            //printf()
+            //cout<<"<p>"+*zErrMsg+"</p>\n";
+          sqlite3_free(zErrMsg);
+          //exists = false;
+        }else{
+          //fprintf(stdout, "Username exists\n");
+          //exists = true;
+        }
     sqlite3_close(db);
     }
     return 0;
@@ -474,25 +406,13 @@ int main () {
       message = data.substr(startNumberLocation,endNumberLocation-startNumberLocation);
       //cout<<"<p>"<< message << "</p>\n";
       
-      /*startNumberLocation = endNumberLocation+14;
-      endNumberLocation = data.find("&send");
-      //cout<<"<p>"<< startNumberLocation <<" " <<endNumberLocation <<"</p>\n";
-      messPassword = data.substr(startNumberLocation,endNumberLocation-startNumberLocation);
-      *///cout<<"<p>"<< messPassword << "</p>\n";
    }
    
    string nonce = getRandom();
-   //cout<<"<p>"+message+":"+nonce+"</p>\n";
-   
-   
    string encrypted= encryptMessage(message, nonce,messPassword);
-   //cout<<"<p>"+encrypted+" "+receiver+ " "+nonce+" "+username+"</p>\n";
-   //storeMessageInDB(encrypted,receiver,nonce,username);
+   
    storeMessageInDB(encrypted,receiver,nonce,username);
    
-   //cout<<"<p>p2:"+encrypted+" "+receiver+ " "+nonce+" "+username+"</p>\n";
-   //string decrypted= encryptMessage(encrypted, nonce, messPassword);
-   //cout<<"<p>Decrypted:"+decrypted+"</p>\n";
    cout<<"<p>Message Sent.</p>\n";
    
    cout << "<form method=\"POST\" action=\"webLogic.cgi\" id=\"goBack\">\n";

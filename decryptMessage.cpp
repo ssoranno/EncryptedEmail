@@ -17,33 +17,12 @@ string messPass = "";
 char *xorMessage(char *encBuffer, char * message, int length){
     size_t index;
     size_t txtLength = length;
-    //string RandChars = "";
-    //cout<<encBuffer << endl;
-    //cout<<"\n";
-    //cout<<message;
-    //cout<< "\n";
     char *encryptedMess = new char;
     for (index = 0; index<txtLength; index++){
-        //char * temp = new char;
-        //cout<< (unsigned char)encBuffer[index] << endl;
-        //cout<< message[index] << endl;
+        
         encryptedMess[index] = (unsigned char)encBuffer[index] ^ (unsigned char)message[index];
-        //sprintf(temp,"%02X",(unsigned char)encBuffer[index]);
-        //RandChars = RandChars+ temp;
+        
     }
-    //cout << "<p>Got Here</p>\n";
-    //cout<< "encBuffer2 = " << RandChars << endl;
-    //string RandChars = "";
-    /*for (index = 0; index<txtLength; index++){
-        char * temp = new char;
-        sprintf(temp,"%02X",(unsigned char)encryptedMess[index]);
-        RandChars = RandChars+ temp;
-    }*/
-    //printf("\n");
-    //cout<< "encMessage = " << RandChars << endl;
-    //char *encryptedMess = cMessage ^ encBuffer;
-    //cout<< "encrypted Message: " << encryptedMess << endl;
-    //return encryptedMess;
     return encryptedMess;
 }
 
@@ -135,9 +114,6 @@ string encryptMessage(string message, string nonce, string password) {
     //cout<< "cMessage:" <<cMessage << endl;
     
     char *encrypted = xorMessage(encBuffer,cMessage,message.length());
-    //char newEncrypt = *encrypted;
-    //string str(encrypted);
-    //cout<<"encrypted:" <<hex << encrypted << endl;
     
     // To decrypt:
     /*char *decrypted = xorMessage(encBuffer,encrypted,message.length());
@@ -152,15 +128,10 @@ string encryptMessage(string message, string nonce, string password) {
 
 static int selectMessage(void *NotUsed, int argc, char **argv, char **azColName){
     int i;
-    //cout<<"<p>Gothere222</p>"<< endl;
     string nonce = argv[1];
     string message = argv[0];
-    //cout<< "<p>"+nonce+"</p>\n";
-    //cout<< "<p>Messgae:"+message+"</p\n>";
-    //cout<< endl;
     string decryptedMessage = encryptMessage(message,nonce,messPass);
     cout<<"<p>Message: "+ decryptedMessage+ "</p>"<< endl;
-    //cout<< decryptedMessage.length()<< endl;
     return 0;
 }
 
@@ -168,32 +139,19 @@ static int selectMessage(void *NotUsed, int argc, char **argv, char **azColName)
 int readMessages(string username, int messID){
     sqlite3* db;
     char *zErrMsg = 0;
-    //bool rc;
-    //bool exists;
     int rc;
     rc = sqlite3_open("mail.db", &db);
     if( rc ){
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
     } else{
-        //int temp = stoi(messID);
-        //string str(temp);
-        //cout<<"<p>"+ temp+"</p>"<< endl;
         string id = to_string(messID);
     string sql_s = "SELECT MESSAGE, NONCE FROM "+username+" where id="+id+";";
-    //cout<< "<p>"+sql_s+"</p>\n";
     const char *sql = sql_s.c_str();
-    //cout<< "h2"<< endl;
-    //string temp;
-    //bool *exists = new bool;
     rc = sqlite3_exec(db, sql, selectMessage, 0, &zErrMsg);
-    //cout<< "h3" << endl;
     if( rc != SQLITE_OK ){
     fprintf(stdout, "SQL error: %s\n", zErrMsg);
-        //printf()
-        //cout<<"<p>"+*zErrMsg+"</p>\n";
       sqlite3_free(zErrMsg);
-      //exists = false;
     }else{
       //fprintf(stdout, "Username exists\n");
       //exists = true;
@@ -344,17 +302,12 @@ int main () {
    
    stringstream geek(messID); 
   
-    // The object has the value 12345 and stream 
-    // it to the integer x 
+     
     int x = 0; 
     geek >> x; 
     
-   //cout<<"<p>";
-   //cout<< x;
-   //cout<<"</p>\n";
    readMessages(username, x);
-   //string decryptedMessage = encryptMessage(message,nonce,messPass);
-   //cout<<"<p>"+ decryptedMessage+ "</p>"<< endl;
+   
    cout << "<form method=\"POST\" action=\"printMessages.cgi\" id=\"goToMessages\">\n";
     cout<< "<input type=\"hidden\" name=\"username\" id=\"username\" value="+username+">\n";
     cout<< "<input type=\"hidden\" name=\"password\" id=\"password\" value="+password+">\n";

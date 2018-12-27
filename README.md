@@ -6,7 +6,9 @@ The program is written in C++ and uses CGI and apache to allow the client to com
 
 ## How to Run:
 
-Compile all .cpp file on a your local host or a cloud server.  To compile use the command:<br>
-g++ "filename" -lgcrypt -lsqlite3
+Before compiling, make sure you install sqlite3 and CGI on your workspace.
+
+Compile all .cpp files on a your local host or a cloud server.  To compile use the command:<br>
+g++ "filename".cpp -std=c++11 -lsqlite3 -lgcrypt -o "filename".cgi
 
 Navigate to https://"servername".com/index.cgi to run the program in brower.  "servername" is to be replaced with the server or local host name.
